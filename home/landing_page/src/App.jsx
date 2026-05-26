@@ -2,6 +2,7 @@ import React from 'react';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import ServiceGrid from './components/ServiceGrid';
+import PricingSection from './components/PricingSection';
 import WhyUs from './components/WhyUs';
 import Neighborhood from './components/Neighborhood';
 import CoffeePromise from './components/CoffeePromise';
@@ -15,6 +16,7 @@ function App() {
       <Navbar />
       <Hero />
       <ServiceGrid />
+      <PricingSection />
       <WhyUs />
       <Neighborhood />
       <CoffeePromise />
