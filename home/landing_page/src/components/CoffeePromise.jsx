@@ -21,11 +21,7 @@ const CoffeePromise = () => {
           </div>
           <h3>Coffee on Us</h3>
           <p>
-            Relax with a complimentary coffee
-            <span className="vct-coffee-icon-inline" aria-hidden="true">
-              <CoffeeIcon size={18} />
-            </span>
-            {' '}— available on selected services.
+            Relax with a complimentary coffee — available on selected services.
           </p>
         </div>
         <div className="vd"></div>

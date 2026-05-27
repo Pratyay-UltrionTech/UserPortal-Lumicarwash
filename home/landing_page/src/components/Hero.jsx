@@ -3,7 +3,6 @@ import { Helmet } from 'react-helmet-async';
 import heroAssetUrl from '../assets/hero.png?url';
 import heroVideo from '../assets/hero-video.mp4';
 import { absoluteAssetUrl, getSiteOrigin } from '../seo/siteConfig';
-import { CoffeeIcon } from './CoffeeIcon';
 import { BRAND_NAME } from '../../../../src/app/lib/branding';
 import { API_BASE } from '../../../../src/app/lib/apiBase';
 import { BRAND_PHONE } from '../config/brand';
@@ -221,12 +220,7 @@ const Hero = () => {
               <span className="sl">Eco-Safe</span>
             </div>
             <div className="hstat hstat-hours">
-              <div className="hstat-sn-row">
-                <span className="hstat-coffee-icon" aria-hidden="true">
-                  <CoffeeIcon size={16} />
-                </span>
-                <span className="sn">7 Days</span>
-              </div>
+              <span className="sn">7 Days</span>
               <span className="sl">9am–5pm</span>
             </div>
             </div>
