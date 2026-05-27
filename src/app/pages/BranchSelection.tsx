@@ -1055,6 +1055,8 @@ export function BranchSelection() {
             bodyClassName="overflow-visible"
           >
                   <div className="space-y-6">
+                    {vehicleId ? (
+                      <>
                     <div className="flex justify-center">
                       <div
                         className="inline-flex p-1 rounded-xl border bg-gray-100/90 transition-shadow duration-300"
@@ -1188,6 +1190,12 @@ export function BranchSelection() {
                         </button>
                       </div>
                     </div>
+                      </>
+                    ) : (
+                      <p className="py-8 text-center text-sm text-gray-500 px-4">
+                        Select a vehicle type in Step 1 to view available packages.
+                      </p>
+                    )}
                   </div>
           </BookingFlowSection>
 
