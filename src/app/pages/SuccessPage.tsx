@@ -44,6 +44,7 @@ import {
   BOOKING_SUMMARY_BODY_CLASS,
   BOOKING_PRICE_BODY_CLASS,
   formatShortBookingId,
+  getPaymentMethodLabel,
 } from '../components/bookingFlowSection';
 
 export function SuccessPage() {
@@ -153,6 +154,7 @@ export function SuccessPage() {
   const receiptDiscounts = confirmedBooking?.discounts ?? 0;
   const grandTotal = servicesTotalIncGst + tipDollars;
   const serviceTypeLabel = serviceType === 'onsite' ? 'Mobile Service' : 'At Branch';
+  const paymentMethodLabel = getPaymentMethodLabel(confirmedBooking?.paymentMethod);
 
   const mobileServiceAddress = useMemo(() => {
     const fromVisit = mobileVisitAddress?.full_address?.trim();
@@ -240,6 +242,7 @@ export function SuccessPage() {
       `  ${booking.time}`,
       '',
       'PAYMENT',
+      `  Payment method: ${paymentMethodLabel}`,
       `  Service (inc GST): $${receiptServiceIncGst.toFixed(2)}`,
       `  Add-ons (inc GST): $${receiptAddonsIncGst.toFixed(2)}`,
     ];
@@ -282,6 +285,7 @@ export function SuccessPage() {
     receiptAddonsIncGst,
     receiptDiscounts,
     receiptServiceIncGst,
+    paymentMethodLabel,
     serviceType,
     isMobileBooking,
     mobileServiceAddress,
@@ -532,6 +536,10 @@ export function SuccessPage() {
 
           <BookingFlowSection icon={Receipt} title="Payment summary">
             <div className={cn('-mt-1 space-y-3', BOOKING_PRICE_BODY_CLASS)}>
+              <div className="flex items-center justify-between">
+                <span className={BOOKING_SUMMARY_BODY_CLASS}>Payment method</span>
+                <span className={cn(BOOKING_SUMMARY_BODY_CLASS, 'shrink-0')}>{paymentMethodLabel}</span>
+              </div>
               <div className="flex items-center justify-between">
                 <span className={BOOKING_SUMMARY_BODY_CLASS}>Service price (inc GST)</span>
                 <span className={cn(BOOKING_SUMMARY_BODY_CLASS, 'shrink-0 tabular-nums')}>

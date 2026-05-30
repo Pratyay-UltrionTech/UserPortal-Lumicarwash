@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useState, ReactNode } from 'react';
+import type { PaymentMethodId } from '../components/bookingFlowSection';
 import type { AddressDetailsWithFullAddress } from '../lib/addressDetails';
 import { type ActiveLoyaltyReward, apiGetActiveLoyaltyRewards } from '../lib/userApi';
 
@@ -59,6 +60,8 @@ interface ConfirmedBooking {
   loyaltyPointsAdded?: number;
   /** Customer UUID — used to build the XXXXXX-CCCC display reference. */
   customerId?: string | null;
+  /** Payment option chosen on the payment page. */
+  paymentMethod?: PaymentMethodId;
 }
 
 interface BookingContextType {

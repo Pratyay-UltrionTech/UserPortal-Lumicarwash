@@ -50,6 +50,7 @@ import {
   BookingFlowSection,
   BOOKING_SUMMARY_BODY_CLASS,
   BOOKING_PRICE_BODY_CLASS,
+  type PaymentMethodId,
 } from '../components/bookingFlowSection';
 
 const PAYMENT_METHODS = [
@@ -499,6 +500,7 @@ export function PaymentPage() {
             token: session?.accessToken,
             loyaltyRewardId: matchingReward?.id,
             promoCode: appliedPromo?.code,
+            paymentMethod: selectedMethod ?? undefined,
           })
         : await createOnlineBooking({
             branchId: selectedBranch.id,
@@ -520,6 +522,7 @@ export function PaymentPage() {
             token: session?.accessToken,
             loyaltyRewardId: matchingReward?.id,
             promoCode: appliedPromo?.code,
+            paymentMethod: selectedMethod ?? undefined,
           });
     if (!write.ok) {
       setIsProcessing(false);
@@ -571,6 +574,7 @@ export function PaymentPage() {
             : getFreeCoffeeCupsForLineItem(selectedBranch.id, vehicleType, selectedService.id),
         loyaltyPointsAdded,
         customerId: (b as { customer_id?: string | null }).customer_id ?? null,
+        paymentMethod: selectedMethod as PaymentMethodId,
       });
     });
     // Auto-save new mobile visit address to profile (silent, logged-in only)

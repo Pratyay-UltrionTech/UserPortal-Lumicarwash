@@ -317,13 +317,14 @@ export function BranchSelection() {
   // Card-level scroll helpers
   // ---------------------------------------------------------------------------
 
-  /** Read cards from the scroller DOM. Returns [] if not mounted. */
+  /** Read slide elements from the scroller (stable outer ref → motion track → grid → slides). */
   const getScrollCards = useCallback((): HTMLElement[] => {
     const el = serviceScrollerRef.current;
     if (!el) return [];
-    const track = el.firstElementChild as HTMLElement | null;
-    if (!track) return [];
-    return Array.from(track.children) as HTMLElement[];
+    const motionTrack = el.firstElementChild as HTMLElement | null;
+    const grid = motionTrack?.firstElementChild as HTMLElement | null;
+    if (!grid) return [];
+    return Array.from(grid.children) as HTMLElement[];
   }, []);
 
   /**
@@ -390,7 +391,7 @@ export function BranchSelection() {
     if (direction === -1) {
       if (canScrollLeft) {
         scrollToCardIdx(getCurrentCardIdx() - 1);
-      } else if (activeTab === 'detail') {
+      } else if (activeTab === 'detail' && washingGroups.length > 0) {
         tabSwitchDirection.current = -1;
         pendingScrollTarget.current = 'last';
         setActiveTab('wash');
@@ -398,51 +399,59 @@ export function BranchSelection() {
     } else {
       if (canScrollRight) {
         scrollToCardIdx(getCurrentCardIdx() + 1);
-      } else if (activeTab === 'wash') {
+      } else if (activeTab === 'wash' && detailingGroups.length > 0) {
         tabSwitchDirection.current = 1;
         pendingScrollTarget.current = 'first';
         setActiveTab('detail');
       }
     }
-  }, [getCurrentCardIdx, scrollToCardIdx, activeTab]);
+  }, [getCurrentCardIdx, scrollToCardIdx, activeTab, washingGroups.length, detailingGroups.length]);
 
   // Composite enabled states
   const canGoLeft  = canScrollServicePrev || activeTab === 'detail';
   const canGoRight = canScrollServiceNext || (activeTab === 'wash' && detailingGroups.length > 0);
 
-  // Reset scroll + button states whenever tab or card list changes.
+  // Reset scroll when tab/vehicle changes; honour arrow-driven cross-tab targets.
   useEffect(() => {
     const target = pendingScrollTarget.current;
     pendingScrollTarget.current = null;
     setCanScrollServicePrev(false);
     setCanScrollServiceNext(false);
 
-    // Use a double-rAF so we wait for AnimatePresence to mount the new div
-    // (exit animation is 240ms under mode="wait"; the new div is committed
-    // to the DOM after the exit finishes). We poll until the ref is assigned.
-    let raf1: number, raf2: number;
+    let cancelled = false;
+    let rafId = 0;
+    let attempts = 0;
+    const maxAttempts = 24;
+
     const applyTarget = () => {
+      if (cancelled) return;
+      const cards = getScrollCards();
+      if (!cards.length && attempts < maxAttempts) {
+        attempts += 1;
+        rafId = window.requestAnimationFrame(applyTarget);
+        return;
+      }
+
       const el = serviceScrollerRef.current;
       if (!el) return;
-      el.scrollLeft = 0;
-      if (target) {
-        const cards = Array.from((el.firstElementChild as HTMLElement)?.children ?? []) as HTMLElement[];
-        if (cards.length) {
-          const destIdx = target === 'last' ? cards.length - 1 : 0;
-          const pad = cards[0].offsetLeft;
-          el.scrollLeft = cards[destIdx].offsetLeft - pad;
-        }
+
+      if (target === 'last' && cards.length) {
+        scrollToCardIdx(cards.length - 1);
+      } else {
+        el.scrollLeft = 0;
       }
       updateServiceScrollButtons();
     };
-    raf1 = window.requestAnimationFrame(() => {
-      raf2 = window.requestAnimationFrame(applyTarget);
+
+    rafId = window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(applyTarget);
     });
+
     return () => {
-      window.cancelAnimationFrame(raf1);
-      window.cancelAnimationFrame(raf2);
+      cancelled = true;
+      window.cancelAnimationFrame(rafId);
     };
-  }, [activeTab, vehicleId, washingGroups, detailingGroups, updateServiceScrollButtons]);
+  }, [activeTab, vehicleId, washingGroups, detailingGroups, updateServiceScrollButtons, getScrollCards, scrollToCardIdx]);
 
   // Re-attach ResizeObserver and sync buttons whenever the scroller div is
   // replaced (tab switch, vehicle change) or the viewport changes size.
@@ -1088,46 +1097,51 @@ export function BranchSelection() {
                       <div className="relative px-6 md:px-8">
                         {/* Clip only horizontal overflow so arrows are never clipped */}
                         <div className="overflow-hidden rounded-lg">
-                          <AnimatePresence mode="wait" initial={false}>
-                            <motion.div
-                              key={activeTab}
-                              initial={{ opacity: 0, x: tabSwitchDirection.current * 48 }}
-                              animate={{ opacity: 1, x: 0 }}
-                              exit={{ opacity: 0, x: tabSwitchDirection.current * -48 }}
-                              transition={{ duration: 0.24, ease: [0.4, 0, 0.2, 1] }}
-                              ref={serviceScrollerRef}
-                              onScroll={updateServiceScrollButtons}
-                              className={`overflow-x-auto overflow-y-visible px-1 pt-5 pb-2 snap-x snap-mandatory ${
-                                activeServiceList.length === 0 ? 'hidden' : ''
-                              } [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden`}
-                            >
-                              <div className="grid min-w-full grid-flow-col auto-cols-[100%] gap-3 md:auto-cols-[calc((100%-0.75rem)/2)] md:gap-4 lg:auto-cols-[calc((100%-2rem)/3)] items-stretch">
-                                {activeServiceList.map((svc) => {
-                                  const isSelected = selectedPackageId === svc.id;
-                                  return (
-                                    <div key={svc.id} className="h-full min-w-0 snap-start">
-                                      <ServicePricingCard
-                                        title={svc.name}
-                                        price={svc.price}
-                                        duration={`${svc.durationMinutes} mins`}
-                                        features={svc.features}
-                                        excludedFeatures={svc.excludedFeatures}
-                                        badge={svc.recommended ? 'Recommended' : undefined}
-                                        freeCoffeeCount={svc.freeCoffeeCount}
-                                        eligibleForLoyaltyPoints={svc.eligibleForLoyaltyPoints === true}
-                                        takeawayCoffeeIcon
-                                        isSelected={isSelected}
-                                        onClick={() => {
-                                          setSelectedPackageId(svc.id);
-                                          setSelectedService(svc);
-                                        }}
-                                      />
-                                    </div>
-                                  );
-                                })}
-                              </div>
-                            </motion.div>
-                          </AnimatePresence>
+                          <div
+                            ref={serviceScrollerRef}
+                            onScroll={updateServiceScrollButtons}
+                            className={cn(
+                              'overflow-x-auto overflow-y-visible px-1 pt-5 pb-2 snap-x snap-mandatory',
+                              '[-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden',
+                              activeServiceList.length === 0 && 'hidden',
+                            )}
+                          >
+                            <AnimatePresence mode="wait" initial={false}>
+                              <motion.div
+                                key={activeTab}
+                                initial={{ opacity: 0, x: tabSwitchDirection.current * 48 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0, x: tabSwitchDirection.current * -48 }}
+                                transition={{ duration: 0.24, ease: [0.4, 0, 0.2, 1] }}
+                              >
+                                <div className="grid min-w-full grid-flow-col auto-cols-[100%] gap-3 md:auto-cols-[calc((100%-0.75rem)/2)] md:gap-4 lg:auto-cols-[calc((100%-2rem)/3)] items-stretch">
+                                  {activeServiceList.map((svc) => {
+                                    const isSelected = selectedPackageId === svc.id;
+                                    return (
+                                      <div key={svc.id} className="h-full min-w-0 snap-start">
+                                        <ServicePricingCard
+                                          title={svc.name}
+                                          price={svc.price}
+                                          duration={`${svc.durationMinutes} mins`}
+                                          features={svc.features}
+                                          excludedFeatures={svc.excludedFeatures}
+                                          badge={svc.recommended ? 'Recommended' : undefined}
+                                          freeCoffeeCount={svc.freeCoffeeCount}
+                                          eligibleForLoyaltyPoints={svc.eligibleForLoyaltyPoints === true}
+                                          takeawayCoffeeIcon
+                                          isSelected={isSelected}
+                                          onClick={() => {
+                                            setSelectedPackageId(svc.id);
+                                            setSelectedService(svc);
+                                          }}
+                                        />
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              </motion.div>
+                            </AnimatePresence>
+                          </div>
                         </div>
 
                         {/* ── Floating nav arrows (outside the overflow-hidden clip) ── */}

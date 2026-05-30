@@ -98,6 +98,8 @@ const PricingSection = () => {
   const [canScrollPrev, setCanScrollPrev] = useState(false);
   const [canScrollNext, setCanScrollNext] = useState(false);
   const scrollerRef = useRef(null);
+  /** After arrow crosses Wash ↔ Detailing: scroll to first or last card (not always 0). */
+  const pendingTabScrollRef = useRef(null);
   const visibleCardCount = useCarouselVisibleCount();
 
   useEffect(() => {
@@ -186,6 +188,17 @@ const PricingSection = () => {
     el.scrollTo({ left: cards[i].offsetLeft - pad, behavior: 'smooth' });
   }, [getCards, maxScrollIdx]);
 
+  /** Scroll to an exact card (used when crossing tabs — e.g. land on last Wash card). */
+  const scrollToCardIndex = useCallback((idx) => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    const cards = getCards();
+    if (!cards.length) return;
+    const pad = cards[0].offsetLeft;
+    const i = Math.max(0, Math.min(cards.length - 1, idx));
+    el.scrollTo({ left: cards[i].offsetLeft - pad, behavior: 'smooth' });
+  }, [getCards]);
+
   const getCurrentIdx = useCallback(() => {
     const el = scrollerRef.current;
     if (!el) return 0;
@@ -202,28 +215,63 @@ const PricingSection = () => {
 
   const doScrollPrev = useCallback(() => {
     const current = getCurrentIdx();
-    if (current > 0) scrollToIdx(current - 1);
-    else if (activeTab === 'detail') setActiveTab('wash');
-  }, [scrollToIdx, getCurrentIdx, activeTab]);
+    if (current > 0) {
+      scrollToIdx(current - 1);
+      return;
+    }
+    if (activeTab === 'detail' && washServices.length > 0) {
+      pendingTabScrollRef.current = 'last';
+      setActiveTab('wash');
+    }
+  }, [scrollToIdx, getCurrentIdx, activeTab, washServices.length]);
 
   const doScrollNext = useCallback(() => {
     const cards = getCards();
     const current = getCurrentIdx();
     const maxIdx = maxScrollIdx(cards.length);
-    if (current < maxIdx) scrollToIdx(current + 1);
-    else if (activeTab === 'wash' && hasDetailing) setActiveTab('detail');
-  }, [scrollToIdx, getCurrentIdx, getCards, maxScrollIdx, activeTab, hasDetailing]);
+    if (current < maxIdx) {
+      scrollToIdx(current + 1);
+      return;
+    }
+    if (activeTab === 'wash' && hasDetailing && detailServices.length > 0) {
+      pendingTabScrollRef.current = 'first';
+      setActiveTab('detail');
+    }
+  }, [scrollToIdx, getCurrentIdx, getCards, maxScrollIdx, activeTab, hasDetailing, detailServices.length]);
 
   const canGoLeft = canScrollPrev || activeTab === 'detail';
   const canGoRight = canScrollNext || (activeTab === 'wash' && hasDetailing);
 
   useEffect(() => {
     const el = scrollerRef.current;
-    if (el) el.scrollLeft = 0;
-    setCanScrollPrev(false);
-    setCanScrollNext(false);
-    requestAnimationFrame(() => requestAnimationFrame(updateScrollBtns));
-  }, [activeTab, selectedVehicle, updateScrollBtns]);
+    if (!el) return;
+
+    const pending = pendingTabScrollRef.current;
+    pendingTabScrollRef.current = null;
+
+    const applyInitialScroll = () => {
+      const cards = getCards();
+      if (!cards.length) {
+        updateScrollBtns();
+        return;
+      }
+      if (pending === 'last') {
+        scrollToCardIndex(cards.length - 1);
+      } else {
+        el.scrollLeft = 0;
+      }
+      updateScrollBtns();
+    };
+
+    if (pending) {
+      requestAnimationFrame(() => requestAnimationFrame(applyInitialScroll));
+    } else {
+      el.scrollLeft = 0;
+      setCanScrollPrev(false);
+      setCanScrollNext(false);
+      requestAnimationFrame(() => requestAnimationFrame(updateScrollBtns));
+    }
+  }, [activeTab, selectedVehicle, updateScrollBtns, getCards, scrollToCardIndex]);
 
   useEffect(() => {
     let ro = null;

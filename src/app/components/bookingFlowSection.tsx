@@ -39,6 +39,19 @@ export function formatShortBookingId(id: string, customerId?: string | null, gue
   return `#${hex}`;
 }
 
+export type PaymentMethodId = 'later' | 'card' | 'apple';
+
+const PAYMENT_METHOD_LABELS: Record<PaymentMethodId, string> = {
+  later: 'Pay After Service',
+  card: 'Credit / Debit Card',
+  apple: 'Apple Pay',
+};
+
+export function getPaymentMethodLabel(id?: string | null): string {
+  if (!id) return PAYMENT_METHOD_LABELS.later;
+  return PAYMENT_METHOD_LABELS[id as PaymentMethodId] ?? id;
+}
+
 /** Single consolidated confirmation / receipt body (sections separated by dividers). */
 export function BookingConfirmationCard({
   children,

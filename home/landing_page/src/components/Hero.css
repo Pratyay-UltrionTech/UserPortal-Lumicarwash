@@ -164,8 +164,8 @@
 
 @media(max-width:768px){
   .landing-page{
-    padding-bottom:calc(82px + constant(safe-area-inset-bottom, 0px));
-    padding-bottom:calc(82px + env(safe-area-inset-bottom, 0px));
+    padding-bottom:calc(87px + constant(safe-area-inset-bottom, 0px));
+    padding-bottom:calc(87px + env(safe-area-inset-bottom, 0px));
   }
   .landing-page .hero{
     min-height:auto;
@@ -229,32 +229,38 @@
   .landing-page .h-action-btn{
     width:100%;
     justify-content:center;
-    padding:.55rem .35rem;
-    font-size:.64rem;
+    padding:calc(.55rem + 2.5px) .35rem;
+    font-size:.73rem;
     letter-spacing:.03em;
     border-radius:10px;
     border-width:1.4px;
     font-weight:700;
-  }
-  .landing-page .h-action-label{white-space:nowrap}
-  .landing-page .h-action-btn--call{
     background:#fff7dd;
     border-color:#b3871f;
     color:#7c5a08;
   }
-  .landing-page .h-action-btn--call .h-action-icon{color:#a77913}
-  .landing-page .h-action-btn--wa{
-    background:#e8fff1;
-    border-color:#22b665;
-    color:#13884a;
+  .landing-page .h-action-label{white-space:nowrap}
+  .landing-page .h-action-btn .h-action-icon{color:#a77913}
+  .landing-page .h-action-btn .h-action-icon svg{width:17px;height:17px}
+  .landing-page .h-action-btn:hover,
+  .landing-page .h-action-btn:active,
+  .landing-page .h-action-btn--call:hover,
+  .landing-page .h-action-btn--wa:hover,
+  .landing-page .h-action-btn--inquiry:hover{
+    background:#fff3c8;
+    border-color:#a77913;
+    color:#000;
+    box-shadow:none;
+    -webkit-transform:none;
+    transform:none;
   }
-  .landing-page .h-action-btn--wa .h-action-icon{color:#10a152}
-  .landing-page .h-action-btn--inquiry{
-    background:#edf5ff;
-    border-color:#5f9ee9;
-    color:#2d6fbe;
+  .landing-page .h-action-btn:hover .h-action-icon,
+  .landing-page .h-action-btn:active .h-action-icon,
+  .landing-page .h-action-btn--call:hover .h-action-icon,
+  .landing-page .h-action-btn--wa:hover .h-action-icon,
+  .landing-page .h-action-btn--inquiry:hover .h-action-icon{
+    color:#a77913;
   }
-  .landing-page .h-action-btn--inquiry .h-action-icon{color:#3e80cf}
   .landing-page .hero-footer{display:flex;flex-direction:column;gap:0;margin:0}
   .landing-page .hformer{
     margin:calc(1rem - var(--hero-mobile-stack-gap)) 0 0;

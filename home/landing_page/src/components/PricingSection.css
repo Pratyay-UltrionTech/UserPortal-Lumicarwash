@@ -206,9 +206,17 @@
   overflow: visible;
 }
 
+@media (max-width: 767px) {
+  .landing-page .ps-panel-body {
+    padding-left: 0.35rem;
+    padding-right: 0.35rem;
+  }
+}
+
 .landing-page .ps-carousel-wrap {
   position: relative;
-  padding: 0 44px;
+  /* Tighter side inset on mobile so cards use more horizontal space */
+  padding: 0 28px;
 }
 
 @media (min-width: 768px) {
@@ -240,10 +248,16 @@
 
 .landing-page .ps-track {
   display: flex;
-  gap: 14px;
+  gap: 10px;
   width: max-content;
   min-width: 100%;
   align-items: stretch;
+}
+
+@media (min-width: 768px) {
+  .landing-page .ps-track {
+    gap: 14px;
+  }
 }
 
 .landing-page .ps-slide {
@@ -290,11 +304,21 @@
 }
 
 .landing-page .ps-arrow--prev {
-  left: 8px;
+  left: 2px;
 }
 
 .landing-page .ps-arrow--next {
-  right: 8px;
+  right: 2px;
+}
+
+@media (min-width: 768px) {
+  .landing-page .ps-arrow--prev {
+    left: 8px;
+  }
+
+  .landing-page .ps-arrow--next {
+    right: 8px;
+  }
 }
 
 .landing-page .ps-arrow--disabled {

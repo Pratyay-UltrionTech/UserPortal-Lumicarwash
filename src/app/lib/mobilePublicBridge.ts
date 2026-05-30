@@ -420,6 +420,8 @@ export type MobileBookingCreateInput = {
   loyaltyRewardId?: string;
   /** Applied promo code (stored on booking for server-side usage tracking). */
   promoCode?: string;
+  /** Payment method chosen by the customer (e.g. 'later', 'card', 'apple'). */
+  paymentMethod?: string;
 };
 
 export type MobileBookingRow = {
@@ -469,6 +471,7 @@ export async function createMobileOnlineBooking(
     if (input.endTime) body.end_time = input.endTime;
     if (input.loyaltyRewardId) body.loyalty_reward_id = input.loyaltyRewardId;
     if (input.promoCode) body.promo_code = input.promoCode.trim().toUpperCase();
+    if (input.paymentMethod) body.payment_method = input.paymentMethod;
     const headers: Record<string, string> = {};
     if (input.token) headers.Authorization = `Bearer ${input.token}`;
 
